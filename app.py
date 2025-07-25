@@ -21,7 +21,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 
 def get_credentials_from_secret(project_id: str, secret_id: str):
     secret_client = secretmanager.SecretManagerServiceClient()
-    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/1"
+    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
 
     response = secret_client.access_secret_version(
         request={"name": secret_name})
