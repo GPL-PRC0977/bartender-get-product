@@ -156,7 +156,7 @@ def get_product():
 
 @app.route('/bartender/product_primer', methods=['GET'])
 # @require_api_key
-def get_product():
+def get_product_primer():
     if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
         return jsonify({"error": "Unauthorized. Invalid API key."}), 401
 
