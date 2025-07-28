@@ -9,12 +9,12 @@ import json
 app = Flask(__name__)
 
 load_dotenv()
-api_key_secrets = os.getenv("API_CRED_KEYS")
-api_project_id = os.getenv("API_PROJECT_ID")
+ep_key_secrets = os.getenv("EP_CRED_KEYS")
+ep_project_id = os.getenv("EP_PROJECT_ID")
 
-api_key_table_id = os.getenv("api_key_table_id")
-api_key_project_id = os.getenv("api_key_project_id")
-api_key_secret_id = os.getenv("api_key_secret_id")
+ep_key_table_id = os.getenv("ep_key_table_id")
+ep_key_project_id = os.getenv("ep_key_project_id")
+ep_key_secret_id = os.getenv("ep_key_secret_id")
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,8 +32,8 @@ def get_credentials_from_secret(project_id: str, secret_id: str):
     return credentials
 
 
-api_key_credentials = get_credentials_from_secret(
-    api_project_id, api_key_secrets)
+ep_key_credentials = get_credentials_from_secret(
+    ep_key_project_id, ep_key_secrets)
 
 # api_key_credentials2 = get_credentials_from_secret(
 #     api_key_project_id, api_key_secret_id)
@@ -47,8 +47,8 @@ api_key_credentials = get_credentials_from_secret(
 #                  "https://www.googleapis.com/auth/drive"],
 # )
 
-client = bigquery.Client(credentials=api_key_credentials,
-                         project=api_key_credentials.project_id)
+client = bigquery.Client(credentials=ep_key_credentials,
+                         project=ep_key_credentials.project_id)
 
 # API_KEY = os.getenv("API_KEY")
 
@@ -63,13 +63,13 @@ client = bigquery.Client(credentials=api_key_credentials,
 
 
 def is_valid_api_key(api_key):
-    api_key_credentials = get_credentials_from_secret(
-        api_key_project_id, api_key_secret_id)
+    ep_key_credentials = get_credentials_from_secret(
+        ep_key_project_id, ep_key_secret_id)
     api_client = bigquery.Client(
-        credentials=api_key_credentials, project=api_key_project_id)
+        credentials=ep_key_credentials, project=ep_key_project_id)
 
     query = f"""
-        SELECT 1 FROM `{api_key_table_id}`
+        SELECT 1 FROM `{ep_key_table_id}`
         WHERE api_key = @api_key
         AND active = 1
         LIMIT 1
