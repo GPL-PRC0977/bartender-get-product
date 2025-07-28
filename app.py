@@ -154,6 +154,42 @@ def get_product():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/bartender/product_primer', methods=['GET'])
+# @require_api_key
+def get_product():
+    if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
+        return jsonify({"error": "Unauthorized. Invalid API key."}), 401
+
+    barcode = request.args.get('barcode', default=None, type=str)
+    mall = request.args.get('mall', default=None, type=str)
+
+    print(barcode, mall)
+
+    query = """select * from `pgc-dma-dev-sandbox.Bartender.vw_product`
+            where barcode = @barcode"""
+
+    query_parameters = []
+    if barcode:
+        query_parameters.append(bigquery.ScalarQueryParameter(
+            "barcode", "STRING", f"{barcode}"))
+
+    print(query_parameters)
+
+    try:
+        query_job = client.query(query, job_config=bigquery.QueryJobConfig(
+            query_parameters=query_parameters, use_legacy_sql=False))
+        results = query_job.result()
+
+        rows = [dict(row) for row in results]
+
+        if not rows:
+            return jsonify({"message": "Product not found"}), 404
+        return jsonify(rows)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # if __name__ == '__main__':
 #     app.run(debug=False, host="0.0.0.0", port=8080)
 if __name__ == '__main__':
