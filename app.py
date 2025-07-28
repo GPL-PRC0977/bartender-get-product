@@ -92,12 +92,12 @@ def get_items():
     param = request.args.get('param', default=None, type=str)
 
     query = """SELECT * FROM `pgc-dma-dev-sandbox.Bartender.vw_bartender_item_master` 
-                WHERE reference_1 LIKE @param or cas_no = @param"""
+                WHERE reference_1 = @param or cas_no = @param"""
 
     query_parameters = []
     if param:
         query_parameters.append(bigquery.ScalarQueryParameter(
-            "param", "STRING", f"%{param}%"))
+            "param", "STRING", f"{param}"))
 
     try:
         query_job = client.query(query, job_config=bigquery.QueryJobConfig(
@@ -154,5 +154,7 @@ def get_product():
         return jsonify({"error": str(e)}), 500
 
 
+# if __name__ == '__main__':
+#     app.run(debug=False, host="0.0.0.0", port=8080)
 if __name__ == '__main__':
-    app.run(debug=False, host="0.0.0.0", port=8080)
+    app.run(debug=False)
