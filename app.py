@@ -9,14 +9,17 @@ import json
 app = Flask(__name__)
 
 load_dotenv()
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# FOR BQ ACCESS
 ep_key_secrets = os.getenv("EP_CRED_KEYS")
 ep_project_id = os.getenv("EP_PROJECT_ID")
 
+# FOR API ENDPOINT ACCESS
 ep_key_table_id = os.getenv("ep_key_table_id")
 ep_key_project_id = os.getenv("ep_key_project_id")
 ep_key_secret_id = os.getenv("ep_key_secret_id")
-
-current_directory = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_credentials_from_secret(project_id: str, secret_id: str):
@@ -32,41 +35,21 @@ def get_credentials_from_secret(project_id: str, secret_id: str):
     return credentials
 
 
-ep_key_credentials = get_credentials_from_secret(
-    ep_key_project_id, ep_key_secrets)
+# FOR BQ ACCESS
+ep_key_credentials_bq = get_credentials_from_secret(
+    ep_project_id, ep_key_secrets)
 
-# api_key_credentials2 = get_credentials_from_secret(
-#     api_key_project_id, api_key_secret_id)
+client = bigquery.Client(credentials=ep_key_credentials_bq,
+                         project=ep_key_credentials_bq.project_id)
 
-# key = os.path.join(current_directory, 'pgc-dma-dev-sandbox.json')
-# credentials = service_account.Credentials.from_service_account_file(
-#     key, scopes=["https://www.googleapis.com/auth/cloud-platform",
-#                  "https://spreadsheets.google.com/feeds",
-#                  "https://www.googleapis.com/auth/spreadsheets",
-#                  "https://www.googleapis.com/auth/drive.file",
-#                  "https://www.googleapis.com/auth/drive"],
-# )
-
-client = bigquery.Client(credentials=ep_key_credentials,
-                         project=ep_key_credentials.project_id)
-
-# API_KEY = os.getenv("API_KEY")
-
-
-# def require_api_key(f):
-#     def decorated_function(*args, **kwargs):
-#         api_key = request.headers.get('X-API-KEY')
-#         if api_key != API_KEY:
-#             return jsonify({"error": "Unauthorized"}), 401
-#         return f(*args, **kwargs)
-#     return decorated_function
+# FOR API ENDPOINT ACCESS
+ep_key_credentials_api = get_credentials_from_secret(
+    ep_key_project_id, ep_key_secret_id)
 
 
 def is_valid_api_key(api_key):
-    ep_key_credentials = get_credentials_from_secret(
-        ep_key_project_id, ep_key_secret_id)
     api_client = bigquery.Client(
-        credentials=ep_key_credentials, project=ep_key_project_id)
+        credentials=ep_key_credentials_api, project=ep_key_project_id)
 
     query = f"""
         SELECT 1 FROM `{ep_key_table_id}`
@@ -84,14 +67,13 @@ def is_valid_api_key(api_key):
 
 
 @app.route('/bartender/items', methods=['GET'])
-# @require_api_key
 def get_items():
     if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
         return jsonify({"error": "Unauthorized. Invalid API key."}), 401
 
     param = request.args.get('param', default=None, type=str)
 
-    query = """SELECT * FROM `pgc-dma-dev-sandbox.Bartender.vw_bartender_item_master` 
+    query = """SELECT * FROM `pgc-one-primer-dw.ds_data_bartender.item_master` 
                 WHERE reference_1 = @param or cas_no = @param"""
 
     query_parameters = []
@@ -115,7 +97,6 @@ def get_items():
 
 
 @app.route('/bartender/product', methods=['GET'])
-# @require_api_key
 def get_product():
     if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
         return jsonify({"error": "Unauthorized. Invalid API key."}), 401
@@ -125,7 +106,7 @@ def get_product():
 
     print(barcode, mall)
 
-    query = """select * from `pgc-dma-dev-sandbox.Bartender.vw_product`
+    query = """select * from `pgc-one-primer-dw.ds_data_bartender.products`
             where barcode = @barcode
             and mall_group_name = @mall"""
 
@@ -155,17 +136,13 @@ def get_product():
 
 
 @app.route('/bartender/product_primer', methods=['GET'])
-# @require_api_key
 def get_product_primer():
     if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
         return jsonify({"error": "Unauthorized. Invalid API key."}), 401
 
     barcode = request.args.get('barcode', default=None, type=str)
-    mall = request.args.get('mall', default=None, type=str)
 
-    print(barcode, mall)
-
-    query = """select * from `pgc-dma-dev-sandbox.Bartender.vw_product`
+    query = """select * from `pgc-one-primer-dw.ds_data_bartender.products`
             where barcode = @barcode"""
 
     query_parameters = []
@@ -191,6 +168,8 @@ def get_product_primer():
 
 
 # if __name__ == '__main__':
-#     app.run(debug=False, host="0.0.0.0", port=8080)
+#     app_port = os.getenv("PORT")
+#     app.run(debug=False, host="0.0.0.0", port=app_port)
+
 if __name__ == '__main__':
     app.run(debug=False)
