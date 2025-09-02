@@ -174,7 +174,7 @@ def get_product_sku():
 
     barcode = request.args.get('barcode', default=None, type=str)
 
-    query = """SELECT * FROM `pgc-one-primer-dw.ds_data_bartender.products_inventories_per_site`
+    query = """SELECT * FROM `pgc-dma-dev-sandbox.Bartender.products_inventories_per_site`
                 WHERE barcode = @barcode"""
 
     query_parameters = []
