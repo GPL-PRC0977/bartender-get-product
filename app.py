@@ -142,8 +142,40 @@ def get_product_primer():
 
     barcode = request.args.get('barcode', default=None, type=str)
 
-    query = """select * from `pgc-one-primer-dw.ds_data_bartender.products`
+    query = """select '' as store_name, * from `pgc-one-primer-dw.ds_data_bartender.products`
             where barcode = @barcode"""
+
+    query_parameters = []
+    if barcode:
+        query_parameters.append(bigquery.ScalarQueryParameter(
+            "barcode", "STRING", f"{barcode}"))
+
+    print(query_parameters)
+
+    try:
+        query_job = client.query(query, job_config=bigquery.QueryJobConfig(
+            query_parameters=query_parameters, use_legacy_sql=False))
+        results = query_job.result()
+
+        rows = [dict(row) for row in results]
+
+        if not rows:
+            return jsonify({"message": "Product not found"}), 404
+        return jsonify(rows)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/bartender/sku', methods=['GET'])
+def get_product_sku():
+    if is_valid_api_key(request.headers.get('X-API-KEY')) is False:
+        return jsonify({"error": "Unauthorized. Invalid API key."}), 401
+
+    barcode = request.args.get('barcode', default=None, type=str)
+
+    query = """SELECT * FROM `pgc-one-primer-dw.ds_data_bartender.products_inventories_per_site`
+                WHERE barcode = @barcode"""
 
     query_parameters = []
     if barcode:
