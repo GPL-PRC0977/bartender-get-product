@@ -21,6 +21,8 @@ ep_key_table_id = os.getenv("ep_key_table_id")
 ep_key_project_id = os.getenv("ep_key_project_id")
 ep_key_secret_id = os.getenv("ep_key_secret_id")
 
+project_dataset = 'pgc-dma-dev-sandbox.Bartender'
+
 
 def get_credentials_from_secret(project_id: str, secret_id: str):
     secret_client = secretmanager.SecretManagerServiceClient()
@@ -73,7 +75,7 @@ def get_items():
 
     param = request.args.get('param', default=None, type=str)
 
-    query = """SELECT * FROM `pgc-one-primer-dw.ds_data_bartender.item_master` 
+    query = f"""SELECT * FROM `{project_dataset}.item_master` 
                 WHERE reference_1 = @param or cas_no = @param"""
 
     query_parameters = []
@@ -106,7 +108,7 @@ def get_product():
 
     print(barcode, mall)
 
-    query = """select * from `pgc-one-primer-dw.ds_data_bartender.products`
+    query = f"""select * from `{project_dataset}.products`
             where barcode = @barcode
             and mall_group_name = @mall"""
 
@@ -142,7 +144,7 @@ def get_product_primer():
 
     barcode = request.args.get('barcode', default=None, type=str)
 
-    query = """select '' as store_name, * from `pgc-one-primer-dw.ds_data_bartender.products`
+    query = f"""select '' as store_name, * from `{project_dataset}.products`
             where barcode = @barcode"""
 
     query_parameters = []
@@ -174,7 +176,7 @@ def get_product_sku():
 
     barcode = request.args.get('barcode', default=None, type=str)
 
-    query = """SELECT * FROM `pgc-dma-dev-sandbox.Bartender.products_inventories_per_site`
+    query = f"""SELECT * FROM `{project_dataset}.products_inventories_per_site`
                 WHERE barcode = @barcode"""
 
     query_parameters = []
