@@ -21,7 +21,8 @@ ep_key_table_id = os.getenv("ep_key_table_id")
 ep_key_project_id = os.getenv("ep_key_project_id")
 ep_key_secret_id = os.getenv("ep_key_secret_id")
 
-project_dataset = 'pgc-dma-dev-sandbox.Bartender'
+# test pgc-dma-dev-sandbox.Bartender
+project_dataset = 'pgc-one-primer-dw.ds_data_bartender'
 
 
 def get_credentials_from_secret(project_id: str, secret_id: str):
